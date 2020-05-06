@@ -1,39 +1,55 @@
 const util = require('util');
 const { inspect } = require('./util')
 
-class Maybe {
+function Maybe (value) {
+  return Just(value)
+}
 
-  static of (value) {
-    return Just.of(value)
+Maybe.of = function (value) {
+  return Just(value)
+}
+
+function Nothing () {
+  return Nothing
+}
+
+/** Nothing is both the class and the only instance of Nothing 
+ * calling new Nothing() just gives you Nothing
+ * Nothing instanceof Nothing is true
+*/
+Nothing.__proto__ = Nothing.prototype
+
+Nothing.prototype.map = function (_) {
+  return this
+}
+
+Nothing.prototype.reduce = function (_, initial) {
+  return initial
+}
+
+Nothing.prototype[util.inspect.custom] = function () {
+  return `Nothing`
+}
+
+function Just (value) {
+  return {
+    value,
+    __proto__: Just.prototype,
   }
 }
 
-const Nothing = {
-  [util.inspect.custom] () {
-    return `Nothing`
-  },
-  map (_f) {
-    return Nothing
-  }
+Just.of = function (value) { return Just(value) }
+
+Just.prototype.map = function (f) {
+  return Just.of(f(this.value))
 }
 
-class Just {
+Just.prototype.reduce = function (reducer, initial) {
+  return reducer(initial, this.value)
+}
 
-  constructor (value) {
-    this.value = value
-  }
-
-  static of (value) {
-    return new Just(value)
-  }
-
-  map (f) {
-    return Just.of(f(this.value))
-  }
-
-  [util.inspect.custom] () {
-    return `Just(${inspect(this.value)})`
-  }
+Just.prototype[util.inspect.custom] = function () {
+  return `Just(${inspect(this.value)})`
 }
 
 module.exports = {

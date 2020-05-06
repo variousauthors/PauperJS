@@ -6,4 +6,11 @@ function inspect (value) {
   }
 }
 
-module.exports = inspect
+function show (...values) {
+  values.forEach(value => console.log(value))
+}
+
+module.exports = {
+  inspect,
+  show
+}
