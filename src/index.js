@@ -1,3 +1,3 @@
-export class Bob {
-
-}
+module.exports = {
+  ...require('./Maybe.js'),
+} 
