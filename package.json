@@ -1,0 +1,9 @@
+{
+  "name": "PauperJS",
+  "version": "1.0.0",
+  "description": "Messing with fantasy land",
+  "main": "index.js",
+  "author": "various.authors",
+  "license": "MIT",
+  "private": true
+}
