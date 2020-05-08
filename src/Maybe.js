@@ -1,6 +1,12 @@
 const util = require('util');
 const { inspect, isNil } = require('./util')
 
+const names = ['map', 'ap', 'chain', 'reduce']
+
+function addFantasyLand (f) {
+  names.map(name => f.prototype[`fantasy-land/${name}`] = f.prototype[name])
+}
+
 function Maybe (value) {
   return Just(value)
 }
@@ -16,21 +22,23 @@ function Nothing () {
   return Nothing
 }
 
+Nothing.of = function (_) { return Nothing }
+
 /** Nothing is both the class and the only instance of Nothing 
  * calling new Nothing() just gives you Nothing
  * Nothing instanceof Nothing is true
 */
 Nothing.__proto__ = Nothing.prototype
 
-Nothing.prototype.map = function (_) {
+Nothing.prototype.map = function map (_) {
   return this
 }
 
-Nothing.prototype.ap = function (_) {
+Nothing.prototype.ap = function ap (_) {
   return this
 }
 
-Nothing.prototype.chain = function (_) {
+Nothing.prototype.chain = function chain (_) {
   return this
 }
 
@@ -56,7 +64,7 @@ Just.prototype.map = function (f) {
 }
 
 Just.prototype.ap = function (other) {
-  return other.map(f => f(this.value))
+  return Just.of(other.value(this.value))
 }
 
 Just.prototype.chain = function (f) {
@@ -70,6 +78,9 @@ Just.prototype.reduce = function (reducer, initial) {
 Just.prototype[util.inspect.custom] = function () {
   return `Just(${inspect(this.value)})`
 }
+
+addFantasyLand(Nothing)
+addFantasyLand(Just)
 
 module.exports = {
   Maybe,

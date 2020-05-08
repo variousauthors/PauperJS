@@ -51,3 +51,14 @@ show(
   e.chain(findById(3)),
   b.chain(findById(3)),
 )
+
+{
+  const v = Just(0)
+  const u = Just(x => x + 1)
+  const a = Just(x => x / 2)
+
+  const r1 = v['fantasy-land/ap'](u['fantasy-land/ap'](a['fantasy-land/map'](f => g => x => f(g(x)))))
+  const r2 = v['fantasy-land/ap'](u)['fantasy-land/ap'](a)
+
+  console.log(r1, r2)
+}
