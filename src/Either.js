@@ -1,40 +1,53 @@
-class Either {
+const util = require('util');
 
+function Either (value) {
+  return Right(value)
 }
 
-class Left {
-  
-  map (_) {
-    return this
-  }
+Either.of = function (value) {
+  return Right(value)
+}
 
-  reduce (_, initial) {
-    return initial
-  }
-
-  [util.inspect.custom] () {
-    return `Left(${inspect(this.value)})`
+function Left (value) {
+  return {
+    value,
+    __proto__: Left.prototype,
   }
 }
 
-class Right {
-  constructor (value) {
-    this.value = value
-  }
+Left.prototype.map = function (_) {
+  return this
+}
 
-  static of (value) {
-    return new Right(value)
-  }
+Left.prototype.reduce = function (_, initial) {
+  return initial
+}
 
-  map (f) {
-    return Right.of(f(this.value))
-  }
+Left.prototype[util.inspect.custom] = function () {
+  return `Left(${inspect(this.value)})`
+}
 
-  reduce (reducer, initial) {
-    return reducer(this.value, initial)
+function Right (value) {
+  return {
+    value,
+    __proto__: Right.prototype,
   }
+}
 
-  [util.inspect.custom] () {
-    return `Right(${inspect(this.value)})`
-  }
+Right.prototype.map = function (f) {
+  return Right.of(f(this.value))
+}
+
+Right.prototype.reduce = function (reducer, initial) {
+  return reducer(initial, this.value)
+}
+
+Right.prototype[util.inspect.custom] = function () {
+  return `Right(${inspect(this.value)})`
+}
+
+module.exports = {
+  Either,
+  Left,
+  Right,
 }

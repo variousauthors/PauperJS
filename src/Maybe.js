@@ -1,5 +1,5 @@
 const util = require('util');
-const { inspect } = require('./util')
+const { inspect, isNil } = require('./util')
 
 function Maybe (value) {
   return Just(value)
@@ -8,6 +8,9 @@ function Maybe (value) {
 Maybe.of = function (value) {
   return Just(value)
 }
+
+// is this how I want to do helpers?
+Maybe.fromNullable = value => isNil(value) ? Nothing : Just(value)
 
 function Nothing () {
   return Nothing
@@ -20,6 +23,14 @@ function Nothing () {
 Nothing.__proto__ = Nothing.prototype
 
 Nothing.prototype.map = function (_) {
+  return this
+}
+
+Nothing.prototype.ap = function (_) {
+  return this
+}
+
+Nothing.prototype.chain = function (_) {
   return this
 }
 
@@ -42,6 +53,14 @@ Just.of = function (value) { return Just(value) }
 
 Just.prototype.map = function (f) {
   return Just.of(f(this.value))
+}
+
+Just.prototype.ap = function (other) {
+  return other.map(f => f(this.value))
+}
+
+Just.prototype.chain = function (f) {
+  return f(this.value)
 }
 
 Just.prototype.reduce = function (reducer, initial) {
