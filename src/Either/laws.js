@@ -6,8 +6,8 @@ const { Left, Right } = require('./Either')
 
 module.exports = {
   laws: function () {
-    const LeftArb = jsc.number.smap(Left, left => left.value, show)
-    const RightArb = jsc.number.smap(Right, right => right.value, show)
+    const LeftArb = jsc.number.smap(Left, left => left.value(), show)
+    const RightArb = jsc.number.smap(Right, right => right.value(), show)
 
     function functor () {
       const fArb = jsc.fn(jsc.number)
@@ -42,8 +42,8 @@ module.exports = {
     }
 
     function apply () {
-      const RightFnArb = jsc.fn(jsc.number).smap(Right, right => right.value, show)
-      const LeftFnArb = jsc.fn(jsc.number).smap(Left, left => left.value, show)
+      const RightFnArb = jsc.fn(jsc.number).smap(Right, right => right.value(), show)
+      const LeftFnArb = jsc.fn(jsc.number).smap(Left, left => left.value(), show)
 
       {
         const { composition } = laws.Apply(Z.equals)

@@ -1,5 +1,6 @@
 const util = require('util');
 const { inspect, addFantasyLand } = require('../util')
+const Z = require ('sanctuary-type-classes');
 
 const compose = (f, g) => x => f(g(x))
 
@@ -13,13 +14,17 @@ Either.of = function (value) {
 
 function Left (value) {
   return {
-    value,
+    value: () => value,
     __proto__: Left.prototype,
   }
 }
 
 Left.of = function (value) {
   return Left(value)
+}
+
+Left.prototype['fantasy-land/equals'] = function equals (other) {
+  return Z.equals(this.value(), other.value())
 }
 
 Left.prototype.map = function (_) {
@@ -39,7 +44,7 @@ Left.prototype.reduce = function (_, initial) {
 }
 
 Left.prototype[util.inspect.custom] = function () {
-  return `Left(${inspect(this.value)})`
+  return `Left(${inspect(this.value())})`
 }
 
 function Right (value) {
@@ -47,6 +52,10 @@ function Right (value) {
     value: () => value,
     __proto__: Right.prototype,
   }
+}
+
+Right.prototype['fantasy-land/equals'] = function equals (other) {
+  return Z.equals(this.value(), other.value())
 }
 
 Right.of = function (value) {

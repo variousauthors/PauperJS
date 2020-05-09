@@ -76,3 +76,12 @@ show(
 
   console.log(r1, r2)
 }
+
+{
+  // right identity
+  const u = Right.of(1).map(x => x + 1)
+
+  const r1 = u['fantasy-land/map'](a => a)
+
+  console.log(r1, u)
+}
