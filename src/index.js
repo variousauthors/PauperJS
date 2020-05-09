@@ -1,4 +1,4 @@
 module.exports = {
-  ...require('./Maybe.js'),
-  ...require('./Either.js'),
+  ...require('./Maybe/Maybe.js'),
+  ...require('./Either/Either.js'),
 } 

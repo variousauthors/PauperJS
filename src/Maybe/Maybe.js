@@ -1,18 +1,12 @@
 const util = require('util');
-const { inspect, isNil } = require('./util')
-
-const names = ['map', 'ap', 'chain', 'reduce']
-
-function addFantasyLand (f) {
-  names.map(name => f.prototype[`fantasy-land/${name}`] = f.prototype[name])
-}
+const { inspect, isNil, addFantasyLand } = require('../util')
 
 function Maybe (value) {
   return Just(value)
 }
 
 Maybe.of = function (value) {
-  return Just(value)
+  return Just.of(value)
 }
 
 // is this how I want to do helpers?

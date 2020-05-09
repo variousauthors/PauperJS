@@ -1,4 +1,4 @@
-const { Nothing, Just, Maybe } = require('./src')
+const { Nothing, Just, Maybe, Right, Left } = require('./src')
 const { show } = require('./src/util')
 
 const prop = p => obj => Maybe.fromNullable(obj[p])
@@ -50,12 +50,26 @@ show(
   e.chain(findById(1)),
   e.chain(findById(3)),
   b.chain(findById(3)),
+  Right.of(1).chain(x => Right.of(x)),
 )
 
 {
+  // Maybe ap
   const v = Just(0)
   const u = Just(x => x + 1)
   const a = Just(x => x / 2)
+
+  const r1 = v['fantasy-land/ap'](u['fantasy-land/ap'](a['fantasy-land/map'](f => g => x => f(g(x)))))
+  const r2 = v['fantasy-land/ap'](u)['fantasy-land/ap'](a)
+
+  console.log(r1, r2)
+}
+
+{
+  // left ap
+  const v = Left.of(0)
+  const u = Left.of(x => x + 1)
+  const a = Left.of(x => x / 2)
 
   const r1 = v['fantasy-land/ap'](u['fantasy-land/ap'](a['fantasy-land/map'](f => g => x => f(g(x)))))
   const r2 = v['fantasy-land/ap'](u)['fantasy-land/ap'](a)
