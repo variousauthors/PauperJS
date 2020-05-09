@@ -1,6 +1,8 @@
 const util = require('util');
 const { inspect, addFantasyLand } = require('../util')
 
+const compose = (f, g) => x => f(g(x))
+
 function Either (value) {
   return Right.of(value)
 }
@@ -42,7 +44,7 @@ Left.prototype[util.inspect.custom] = function () {
 
 function Right (value) {
   return {
-    value,
+    value: () => value,
     __proto__: Right.prototype,
   }
 }
@@ -52,23 +54,29 @@ Right.of = function (value) {
 }
 
 Right.prototype.map = function (f) {
-  return Right.of(f(this.value))
+  return {
+    value: compose(f, this.value),
+    __proto__: Right.prototype,
+  }
 }
 
 Right.prototype.ap = function (other) {
-  return other.map(fn => fn(this.value))
+  return other.map(fn => fn(this.value()))
 }
 
 Right.prototype.chain = function (f) {
-  return f(this.value)
+  return {
+    value: () => f(this.value()).value(),
+    __proto__: Right.prototype,
+  }
 }
 
 Right.prototype.reduce = function (reducer, initial) {
-  return reducer(initial, this.value)
+  return reducer(initial, this.value())
 }
 
 Right.prototype[util.inspect.custom] = function () {
-  return `Right(${inspect(this.value)})`
+  return `Right(${inspect(this.value())})`
 }
 
 addFantasyLand(Right)

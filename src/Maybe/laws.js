@@ -6,7 +6,7 @@ const { Nothing, Just } = require('./Maybe')
 
 module.exports = {
   laws: function () {
-    const JustArb = jsc.number.smap(Just, just => just.value, show)
+    const JustArb = jsc.number.smap(Just, just => just.value(), show)
     const NothingArb = jsc.number.smap(Nothing, nothing => nothing, show)
 
     function functor () {
@@ -42,7 +42,7 @@ module.exports = {
     }
 
     function apply () {
-      const JustFnArb = jsc.fn(jsc.number).smap(Just, just => just.value, show)
+      const JustFnArb = jsc.fn(jsc.number).smap(Just, just => just.value(), show)
       const NothingFnArb = jsc.fn(jsc.number).smap(Nothing, nothing => nothing, show)
 
       {
