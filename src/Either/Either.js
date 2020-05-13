@@ -19,8 +19,8 @@ function Left (value) {
   }
 }
 
-Left.of = function (value) {
-  return Left(value)
+Left.prototype['fantasy-land/equals'] = function equals (other) {
+  return Z.equals(this.value(), other.value())
 }
 
 Left.prototype['fantasy-land/equals'] = function equals (other) {

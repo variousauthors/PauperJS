@@ -67,9 +67,9 @@ show(
 
 {
   // left ap
-  const v = Left.of(0)
-  const u = Left.of(x => x + 1)
-  const a = Left.of(x => x / 2)
+  const v = Left(0)
+  const u = Left(x => x + 1)
+  const a = Left(x => x / 2)
 
   const r1 = v['fantasy-land/ap'](u['fantasy-land/ap'](a['fantasy-land/map'](f => g => x => f(g(x)))))
   const r2 = v['fantasy-land/ap'](u)['fantasy-land/ap'](a)
