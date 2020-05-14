@@ -1,5 +1,5 @@
-const Maybe = require('./src/Maybe/laws')
-const Either = require('./src/Either/laws')
+const Maybe = require('./src/ADTs/Maybe/laws')
+const Either = require('./src/ADTs/Either/laws')
 
 Maybe.laws()
 Either.laws()

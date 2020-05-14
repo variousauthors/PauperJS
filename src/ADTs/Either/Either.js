@@ -1,8 +1,6 @@
 const util = require('util');
-const { inspect, addFantasyLand } = require('../util')
+const { inspect, addFantasyLand, compose } = require('../../util')
 const Z = require ('sanctuary-type-classes');
-
-const compose = (f, g) => x => f(g(x))
 
 function Either (value) {
   return Right.of(value)
@@ -19,16 +17,25 @@ function Left (value) {
   }
 }
 
-Left.prototype['fantasy-land/equals'] = function equals (other) {
-  return Z.equals(this.value(), other.value())
+const Functor = {
+  implement: function implement(Type, implementation) {
+    Type.prototype.map = implementation.map
+    Type.prototype['fantasy-land/map'] = implementation.map
+  },
 }
+
+function implements (spec, Type, implementation) {
+  spec.implement(Type, implementation)
+}
+
+implements(Functor, Left, {
+  map: function map (_) {
+    return this
+  }
+})
 
 Left.prototype['fantasy-land/equals'] = function equals (other) {
   return Z.equals(this.value(), other.value())
-}
-
-Left.prototype.map = function (_) {
-  return this
 }
 
 Left.prototype.ap = function (_) {
@@ -54,6 +61,15 @@ function Right (value) {
   }
 }
 
+implements(Functor, Right, {
+  map: function map(f) {
+    return {
+      value: compose(f, this.value),
+      __proto__: Right.prototype,
+    }
+  }
+})
+
 Right.prototype['fantasy-land/equals'] = function equals (other) {
   return Z.equals(this.value(), other.value())
 }
@@ -62,22 +78,19 @@ Right.of = function (value) {
   return Right(value)
 }
 
-Right.prototype.map = function (f) {
+Right.prototype.join = function () {
   return {
-    value: compose(f, this.value),
+    value: () => this.value().value(),
     __proto__: Right.prototype,
   }
-}
-
-Right.prototype.ap = function (other) {
-  return other.map(fn => fn(this.value()))
 }
 
 Right.prototype.chain = function (f) {
-  return {
-    value: () => f(this.value()).value(),
-    __proto__: Right.prototype,
-  }
+  return this.map(f).join()
+}
+
+Right.prototype.ap = function (other) {
+  return other.chain(f => this.map(f))
 }
 
 Right.prototype.reduce = function (reducer, initial) {

@@ -1,5 +1,5 @@
 
-const names = ['of', 'map', 'ap', 'chain', 'reduce']
+const names = ['of', 'ap', 'chain', 'reduce']
 
 module.exports = {
   addFantasyLand: function addFantasyLand(f) {

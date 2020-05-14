@@ -1,5 +1,5 @@
 const util = require('util');
-const { inspect, isNil, addFantasyLand } = require('../util')
+const { inspect, isNil, addFantasyLand, compose } = require('../../util')
 
 function Maybe (value) {
   return Just(value)
@@ -15,6 +15,8 @@ Maybe.fromNullable = value => isNil(value) ? Nothing : Just(value)
 function Nothing () {
   return Nothing
 }
+
+Nothing.prototype.value = () => Nothing
 
 Nothing.of = function (_) { return Nothing }
 
@@ -46,7 +48,7 @@ Nothing.prototype[util.inspect.custom] = function () {
 
 function Just (value) {
   return {
-    value,
+    value: () => value,
     __proto__: Just.prototype,
   }
 }
@@ -54,23 +56,30 @@ function Just (value) {
 Just.of = function (value) { return Just(value) }
 
 Just.prototype.map = function (f) {
-  return Just.of(f(this.value))
+  return {
+    value: compose(f, this.value),
+    __proto__: Just.prototype,
+  }
 }
 
-Just.prototype.ap = function (other) {
-  return Just.of(other.value(this.value))
+Just.prototype.join = function () {
+  return this.value()
 }
 
 Just.prototype.chain = function (f) {
-  return f(this.value)
+  return this.map(f).join()
+}
+
+Just.prototype.ap = function (other) {
+  return other.chain(f => this.map(f))
 }
 
 Just.prototype.reduce = function (reducer, initial) {
-  return reducer(initial, this.value)
+  return reducer(initial, this.value())
 }
 
 Just.prototype[util.inspect.custom] = function () {
-  return `Just(${inspect(this.value)})`
+  return `Just(${inspect(this.value())})`
 }
 
 addFantasyLand(Nothing)
