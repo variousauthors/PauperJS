@@ -10,7 +10,7 @@ describe('Just', () => {
   const JustArb = jsc.number.smap(Just, just => just.value(), show)
 
   describe('functor', () => {
-    const { identity, composition } = laws.Functor(Z.equals, Just)
+    const { identity, composition } = laws.Functor(Z.equals)
 
     it('obeys identity', identity(JustArb))
     it('obeys composition', composition(JustArb, fArb, gArb))
@@ -33,12 +33,12 @@ describe('Just', () => {
 })
 
 describe('Nothing', () => {
-  const NothingArb = jsc.number.smap(Nothing, nothing => nothing, show)
+  const NothingArb = jsc.constant(Nothing)
 
   describe('functor', () => {
     const fArb = jsc.fn(jsc.number)
     const gArb = jsc.fn(jsc.number)
-    const { identity, composition } = laws.Functor(Z.equals, Nothing)
+    const { identity, composition } = laws.Functor(Z.equals)
 
     it('obeys identity', identity(NothingArb))
     it('obeys composition', composition(NothingArb, fArb, gArb))
@@ -49,11 +49,11 @@ describe('Nothing', () => {
     const gArb = jsc.fn(NothingArb)
     const { associativity } = laws.Chain(Z.equals)
 
-    it('obeys associativity', associativity(Nothing, fArb, gArb))
+    it('obeys associativity', associativity(NothingArb, fArb, gArb))
   })
 
   describe('apply', () => {
-    const NothingFnArb = jsc.fn(jsc.number).smap(Nothing, nothing => nothing, show)
+    const NothingFnArb = jsc.fn(jsc.constant(Nothing))
     const { composition } = laws.Apply(Z.equals)
 
     it('obeys composition', composition(NothingFnArb, NothingFnArb, NothingArb))

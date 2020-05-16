@@ -1,5 +1,6 @@
 const util = require('util');
 const { inspect, isNil, addFantasyLand, compose } = require('../../util')
+const Z = require ('sanctuary-type-classes');
 
 function Maybe (value) {
   return Just(value)
@@ -28,6 +29,11 @@ Nothing.__proto__ = Nothing.prototype
 
 Nothing.prototype.map = function map (_) {
   return this
+}
+
+Nothing.prototype['fantasy-land/map'] = Nothing.prototype.map
+Nothing.prototype['fantasy-land/equals'] = function equals (other) {
+  return Z.equals(other.value(), this.value())
 }
 
 Nothing.prototype.ap = function ap (_) {
@@ -60,6 +66,11 @@ Just.prototype.map = function (f) {
     value: compose(f, this.value),
     __proto__: Just.prototype,
   }
+}
+
+Just.prototype['fantasy-land/map'] = Just.prototype.map
+Just.prototype['fantasy-land/equals'] = function equals (other) {
+  return Z.equals(other.value(), this.value())
 }
 
 Just.prototype.join = function () {
