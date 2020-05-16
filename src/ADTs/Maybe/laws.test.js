@@ -7,7 +7,7 @@ const { Nothing, Just } = require('./Maybe')
 describe('Just', () => {
   const fArb = jsc.fn(jsc.number)
   const gArb = jsc.fn(jsc.number)
-  const JustArb = jsc.number.smap(Just, just => just.value(), show)
+  const JustArb = jsc.number.smap(Just, just => just.reduce((_, el) => el, undefined), show)
 
   describe('functor', () => {
     const { identity, composition } = laws.Functor(Z.equals)
@@ -25,7 +25,7 @@ describe('Just', () => {
   })
 
   describe('apply', () => {
-    const JustFnArb = jsc.fn(jsc.number).smap(Just, just => just.value(), show)
+    const JustFnArb = jsc.fn(jsc.number).smap(Just, just => just.reduce((_, el) => el, undefined), show)
     const { composition } = laws.Apply(Z.equals)
 
     it('obeys composition', composition(JustFnArb, JustFnArb, JustArb))

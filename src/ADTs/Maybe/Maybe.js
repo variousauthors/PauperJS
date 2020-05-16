@@ -3,12 +3,6 @@ const { inspect, compose } = require('../../util')
 const { implement, Functor, Setoid, Apply, Chain, Applicative, Foldable } = require('../../util/fantasyLand')
 const Z = require ('sanctuary-type-classes');
 
-function Maybe (value) {
-  return Just(value)
-}
-
-Maybe.prototype.of = function (value) { return Just.of(value) }
-
 function Nothing () {
   return Nothing
 }
@@ -51,14 +45,23 @@ implement(Foldable, Nothing, {
   }
 })
 
-function Just(value) {
+function makeJust (reduce) {
   return {
-    value: () => value,
+    /** the things I do for encapsulation */
+    reduce,
     __proto__: Just.prototype,
     [util.inspect.custom]: function () {
-      return `Just(${inspect(this.value())})`
+      return `Just(${inspect(reduce((_, el) => el, undefined))})`
     }
   }
+}
+
+function Just(value) {
+  return makeJust(
+    function reduce (reducer, initial) {
+      return reducer(initial, value)
+    },
+  )
 }
 
 implement(Applicative, Just, {
@@ -67,16 +70,26 @@ implement(Applicative, Just, {
 
 implement(Functor, Just, {
   map: function (f) {
-    return {
-      value: compose(f, this.value),
-      __proto__: Just.prototype,
-    }
+    const value = this.reduce((_, el) => el, undefined)
+
+    return makeJust(function reduce (reducer, initial) {
+      return reducer(initial, f(value))
+    })
   }
 })
 
 implement(Setoid, Just, {
+  /** I don't actually know that other is an instance of _my_ Just 
+   * it could be a Just from any fantasy-land compliant library 
+   * so the only method I know it has is `fantasy-land/map`
+   * and yet I must scream */
   equals: function equals(other) {
-    return Z.equals(other.reduce((acc, el) => acc.concat(el), [])[0], this.value())
+    return this.ap(
+      other.map(x => a => Z.equals(x, a))
+    ).reduce(
+      (_, el) => el, 
+      false
+    )
   }
 })
 
@@ -88,18 +101,11 @@ implement(Apply, Just, {
 
 implement(Chain, Just, {
   chain: function (f) {
-    return this.map(f).value()
-  }
-})
-
-implement(Foldable, Just, {
-  reduce: function (reducer, initial) {
-    return reducer(initial, this.value())
+    return this.map(f).reduce((_, el) => el, undefined)
   }
 })
 
 module.exports = {
-  Maybe,
   Nothing,
   Just,
 }
