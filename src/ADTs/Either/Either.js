@@ -1,5 +1,5 @@
 const util = require('util');
-const { inspect, addFantasyLand, compose } = require('../../util')
+const { inspect, compose } = require('../../util')
 const Z = require ('sanctuary-type-classes');
 
 function Either (value) {
@@ -100,9 +100,6 @@ Right.prototype.reduce = function (reducer, initial) {
 Right.prototype[util.inspect.custom] = function () {
   return `Right(${inspect(this.value())})`
 }
-
-addFantasyLand(Right)
-addFantasyLand(Left)
 
 module.exports = {
   Either,
