@@ -3,8 +3,12 @@ const { inspect, compose } = require('../../util')
 const { implement, Functor, Setoid, Apply, Chain, Applicative, Foldable } = require('../../util/fantasyLand')
 const Z = require ('sanctuary-type-classes');
 
-function Nothing () {
-  return Nothing
+function Nothing() {
+  if (isNil(Nothing.instance)) {
+    Nothing.instance = this
+  }
+
+  return Nothing.instance
 }
 
 Nothing.__proto__ = Nothing.prototype
@@ -22,8 +26,8 @@ implement(Functor, Nothing, {
 })
 
 implement(Setoid, Nothing, {
-  equals: function equals(_) {
-    return true
+  equals: function equals(other) {
+    return other instanceof Nothing
   }
 })
 
@@ -45,6 +49,14 @@ implement(Foldable, Nothing, {
   }
 })
 
+function Just (value) {
+  return makeJust(
+    function reduce(reducer, initial) {
+      return reducer(initial, value)
+    },
+  )
+}
+
 function makeJust (reduce) {
   return {
     /** the things I do for encapsulation */
@@ -56,16 +68,8 @@ function makeJust (reduce) {
   }
 }
 
-function Just(value) {
-  return makeJust(
-    function reduce (reducer, initial) {
-      return reducer(initial, value)
-    },
-  )
-}
-
 implement(Applicative, Just, {
-  of: function (value) { return Just(value) }
+  of: function (value) { return new Just(value) }
 })
 
 implement(Functor, Just, {
@@ -79,16 +83,12 @@ implement(Functor, Just, {
 })
 
 implement(Setoid, Just, {
-  /** I don't actually know that other is an instance of _my_ Just 
-   * it could be a Just from any fantasy-land compliant library 
-   * so the only method I know it has is `fantasy-land/map`
-   * and yet I must scream */
   equals: function equals(other) {
-    return this.ap(
-      other.map(x => a => Z.equals(x, a))
-    ).reduce(
-      (_, el) => el, 
-      false
+    if (!(other instanceof Just)) return false
+
+    return Z.equals(
+      this.reduce((_, el) => el, undefined),
+      other.reduce((_, el) => el, undefined),
     )
   }
 })
