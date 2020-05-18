@@ -3,60 +3,134 @@ const jsc = require ('jsverify');
 const show = require ('sanctuary-show');
 const Z = require ('sanctuary-type-classes');
 const { Nothing, Just } = require('./Maybe')
-const { head } = require('../../helpers')
+const { head, isDefined } = require('../../helpers')
 
-describe('Just', () => {
-  const fArb = jsc.fn(jsc.number)
-  const gArb = jsc.fn(jsc.number)
-  const JustArb = jsc.number.smap(Just, head, show)
+describe('Either', () => {
+  describe('Just', () => {
+    const fromNullable = value => isDefined(value) ? Just.of(value) : Nothing
+    const value = m => m.reduce((_, el) => el, undefined)
 
-  describe('functor', () => {
-    const { identity, composition } = laws.Functor(Z.equals)
+    describe('reduce', () => {
+      it('works like a reduce', () => {
+        const result = Just.of(0).reduce((acc, el) => acc.concat(el), [])
 
-    it('obeys identity', identity(JustArb))
-    it('obeys composition', composition(JustArb, fArb, gArb))
-  })
+        expect(result).toEqual([0])
+      })
 
-  describe('chain', () => {
-    const fArb = jsc.fn(JustArb)
-    const gArb = jsc.fn(JustArb)
-    const { associativity } = laws.Chain(Z.equals)
+      it('is not lazy', () => {
+        const fn = jest.fn().mockImplementation(x => x)
+        Just.of(0).reduce(fn, undefined)
 
-    it('obeys associativity', associativity(JustArb, fArb, gArb))
-  })
+        expect(fn).toHaveBeenCalled()
+      })
+    })
 
-  describe('apply', () => {
-    const JustFnArb = jsc.fn(jsc.number).smap(Just, head, show)
-    const { composition } = laws.Apply(Z.equals)
+    describe('releasing the value', () => {
+      const fn = jest.fn().mockImplementation(x => x + 1)
 
-    it('obeys composition', composition(JustFnArb, JustFnArb, JustArb))
+      it('map', () => {
+        const result = fromNullable(0)
+          .map(x => fn(x))
+
+        expect(value(result)).toBe(1)
+      })
+
+      it('chain', () => {
+        const result = fromNullable(0)
+          .chain(x => fromNullable(fn(x)))
+
+        expect(value(result)).toBe(1)
+      })
+
+      it('ap', () => {
+        const result = fromNullable(0)
+          .ap(fromNullable(x => fn(x)))
+
+        expect(value(result)).toBe(1)
+      })
+    })
+
+    describe('it is lazy', () => {
+      const fn = jest.fn().mockImplementation(x => x + 1)
+
+      it('map is lazy', () => {
+        fromNullable(0)
+          .map(x => fn(x))
+
+        expect(fn).not.toHaveBeenCalled()
+      })
+
+      it('chain is lazy', () => {
+        fromNullable(0)
+          .chain(x => fromNullable(fn(x)))
+
+        expect(fn).not.toHaveBeenCalled()
+      })
+
+      it('ap is lazy', () => {
+        fromNullable(0)
+          .ap(fromNullable(x => fn(x)))
+
+        expect(fn).not.toHaveBeenCalled()
+      })
+    })
   })
 })
 
-describe('Nothing', () => {
-  const NothingArb = jsc.constant(Nothing)
-
-  describe('functor', () => {
+describe('fantasy-laws', () => {
+  describe('Just', () => {
     const fArb = jsc.fn(jsc.number)
     const gArb = jsc.fn(jsc.number)
-    const { identity, composition } = laws.Functor(Z.equals)
+    const JustArb = jsc.number.smap(Just, head, show)
 
-    it('obeys identity', identity(NothingArb))
-    it('obeys composition', composition(NothingArb, fArb, gArb))
+    describe('functor', () => {
+      const { identity, composition } = laws.Functor(Z.equals)
+
+      it('obeys identity', identity(JustArb))
+      it('obeys composition', composition(JustArb, fArb, gArb))
+    })
+
+    describe('chain', () => {
+      const fArb = jsc.fn(JustArb)
+      const gArb = jsc.fn(JustArb)
+      const { associativity } = laws.Chain(Z.equals)
+
+      it('obeys associativity', associativity(JustArb, fArb, gArb))
+    })
+
+    describe('apply', () => {
+      const JustFnArb = jsc.fn(jsc.number).smap(Just, head, show)
+      const { composition } = laws.Apply(Z.equals)
+
+      it('obeys composition', composition(JustFnArb, JustFnArb, JustArb))
+    })
   })
 
-  describe('chain', () => {
-    const fArb = jsc.fn(NothingArb)
-    const gArb = jsc.fn(NothingArb)
-    const { associativity } = laws.Chain(Z.equals)
+  describe('Nothing', () => {
+    const NothingArb = jsc.constant(Nothing)
 
-    it('obeys associativity', associativity(NothingArb, fArb, gArb))
-  })
+    describe('functor', () => {
+      const fArb = jsc.fn(jsc.number)
+      const gArb = jsc.fn(jsc.number)
+      const { identity, composition } = laws.Functor(Z.equals)
 
-  describe('apply', () => {
-    const NothingFnArb = jsc.fn(jsc.constant(Nothing))
-    const { composition } = laws.Apply(Z.equals)
+      it('obeys identity', identity(NothingArb))
+      it('obeys composition', composition(NothingArb, fArb, gArb))
+    })
 
-    it('obeys composition', composition(NothingFnArb, NothingFnArb, NothingArb))
+    describe('chain', () => {
+      const fArb = jsc.fn(NothingArb)
+      const gArb = jsc.fn(NothingArb)
+      const { associativity } = laws.Chain(Z.equals)
+
+      it('obeys associativity', associativity(NothingArb, fArb, gArb))
+    })
+
+    describe('apply', () => {
+      const NothingFnArb = jsc.fn(jsc.constant(Nothing))
+      const { composition } = laws.Apply(Z.equals)
+
+      it('obeys composition', composition(NothingFnArb, NothingFnArb, NothingArb))
+    })
   })
 })

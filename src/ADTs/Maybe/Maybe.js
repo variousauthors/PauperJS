@@ -65,10 +65,10 @@ implement(Applicative, Just, {
 
 implement(Functor, Just, {
   map: function (f) {
-    const value = this.reduce((_, el) => el, undefined)
+    const previous = () => this.reduce((_, el) => el, undefined)
 
     return makeJust(function reduce (reducer, initial) {
-      return reducer(initial, f(value))
+      return reducer(initial, f(previous()))
     })
   }
 })
@@ -92,7 +92,7 @@ implement(Apply, Just, {
 
 implement(Chain, Just, {
   chain: function (f) {
-    return this.map(f).reduce((_, el) => el, undefined)
+    return this.map(x => f(x).reduce((_, el) => el, undefined))
   }
 })
 
