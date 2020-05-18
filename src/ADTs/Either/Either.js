@@ -59,10 +59,11 @@ implement(Applicative, Right, {
 
 implement(Functor, Right, {
   map: function (f) {
-    const value = this.reduce((_, el) => el, undefined)
+    const previous = () => this.reduce((_, el) => el, undefined)
 
-    return makeRight(function reduce (reducer, initial) {
-      return reducer(initial, f(value))
+    return makeRight(function reduce(reducer, initial) {
+
+      return reducer(initial, f(previous()))
     })
   }
 })
@@ -86,7 +87,7 @@ implement(Apply, Right, {
 
 implement(Chain, Right, {
   chain: function (f) {
-    return this.map(f).reduce((_, el) => el, undefined)
+    return this.map(x => f(x).reduce((_, el) => el, undefined))
   }
 })
 
