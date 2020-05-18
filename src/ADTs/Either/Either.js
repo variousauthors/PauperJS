@@ -1,108 +1,97 @@
-const util = require('util');
-const { inspect, compose } = require('../../util')
+const { makeLazyInstance } = require('../../util')
+const { head } = require('../../helpers')
+const { implement, Functor, Setoid, Apply, Chain, Applicative, Foldable } = require('../../util/fantasyLand')
 const Z = require ('sanctuary-type-classes');
 
-function Either (value) {
-  return Right.of(value)
-}
-
-Either.of = function (value) {
-  return Right.of(value)
-}
+const makeRight = makeLazyInstance(Right)
+const makeLeft = makeLazyInstance(Left)
 
 function Left (value) {
-  return {
-    value: () => value,
-    __proto__: Left.prototype,
-  }
+  return makeLeft(
+    function reduce(reducer, initial) {
+      return reducer(initial, value)
+    },
+  )
 }
 
-const Functor = {
-  implement: function implement(Type, implementation) {
-    Type.prototype.map = implementation.map
-    Type.prototype['fantasy-land/map'] = implementation.map
-  },
-}
-
-function implements (spec, Type, implementation) {
-  spec.implement(Type, implementation)
-}
-
-implements(Functor, Left, {
+implement(Functor, Left, {
   map: function map (_) {
     return this
   }
 })
 
-Left.prototype['fantasy-land/equals'] = function equals (other) {
-  return Z.equals(this.value(), other.value())
-}
-
-Left.prototype.ap = function (_) {
-  return this
-}
-
-Left.prototype.chain = function (_) {
-  return this
-}
-
-Left.prototype.reduce = function (_, initial) {
-  return initial
-}
-
-Left.prototype[util.inspect.custom] = function () {
-  return `Left(${inspect(this.value())})`
-}
-
-function Right (value) {
-  return {
-    value: () => value,
-    __proto__: Right.prototype,
-  }
-}
-
-implements(Functor, Right, {
-  map: function map(f) {
-    return {
-      value: compose(f, this.value),
-      __proto__: Right.prototype,
-    }
+implement(Setoid, Left, {
+  equals: function equals(other) {
+    return Z.equals(head(this), head(other))
   }
 })
 
-Right.prototype['fantasy-land/equals'] = function equals (other) {
-  return Z.equals(this.value(), other.value())
-}
-
-Right.of = function (value) {
-  return Right(value)
-}
-
-Right.prototype.join = function () {
-  return {
-    value: () => this.value().value(),
-    __proto__: Right.prototype,
+implement(Apply, Left, {
+  ap: function ap(_) {
+    return this
   }
+})
+
+implement(Chain, Left, {
+  chain: function chain(_) {
+    return this
+  }
+})
+
+implement(Foldable, Left, {
+  reduce: function reduce(_, initial) {
+    return initial
+  }
+})
+
+
+function Right (value) {
+  return makeRight(
+    function reduce(reducer, initial) {
+      return reducer(initial, value)
+    },
+  )
 }
 
-Right.prototype.chain = function (f) {
-  return this.map(f).join()
-}
+implement(Applicative, Right, {
+  of: function (value) { return new Right(value) }
+})
 
-Right.prototype.ap = function (other) {
-  return other.chain(f => this.map(f))
-}
+implement(Functor, Right, {
+  map: function (f) {
+    const value = this.reduce((_, el) => el, undefined)
 
-Right.prototype.reduce = function (reducer, initial) {
-  return reducer(initial, this.value())
-}
+    return makeRight(function reduce (reducer, initial) {
+      return reducer(initial, f(value))
+    })
+  }
+})
 
-Right.prototype[util.inspect.custom] = function () {
-  return `Right(${inspect(this.value())})`
-}
+implement(Setoid, Right, {
+  equals: function equals(other) {
+    if (!(other instanceof Right)) return false
+
+    return Z.equals(
+      this.reduce((_, el) => el, undefined),
+      other.reduce((_, el) => el, undefined),
+    )
+  }
+})
+
+implement(Apply, Right, {
+  ap: function (other) {
+    return other.chain(f => this.map(f))
+  }
+})
+
+implement(Chain, Right, {
+  chain: function (f) {
+    return this.map(f).reduce((_, el) => el, undefined)
+  }
+})
+
 
 module.exports = {
-  Either,
   Left,
   Right,
 }

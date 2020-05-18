@@ -3,11 +3,12 @@ const jsc = require ('jsverify');
 const show = require ('sanctuary-show');
 const Z = require ('sanctuary-type-classes');
 const { Nothing, Just } = require('./Maybe')
+const { head } = require('../../helpers')
 
 describe('Just', () => {
   const fArb = jsc.fn(jsc.number)
   const gArb = jsc.fn(jsc.number)
-  const JustArb = jsc.number.smap(Just, just => just.reduce((_, el) => el, undefined), show)
+  const JustArb = jsc.number.smap(Just, head, show)
 
   describe('functor', () => {
     const { identity, composition } = laws.Functor(Z.equals)
@@ -25,7 +26,7 @@ describe('Just', () => {
   })
 
   describe('apply', () => {
-    const JustFnArb = jsc.fn(jsc.number).smap(Just, just => just.reduce((_, el) => el, undefined), show)
+    const JustFnArb = jsc.fn(jsc.number).smap(Just, head, show)
     const { composition } = laws.Apply(Z.equals)
 
     it('obeys composition', composition(JustFnArb, JustFnArb, JustArb))

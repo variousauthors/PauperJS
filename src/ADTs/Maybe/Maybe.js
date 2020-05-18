@@ -1,7 +1,9 @@
 const util = require('util');
-const { inspect, compose } = require('../../util')
+const { makeLazyInstance } = require('../../util')
 const { implement, Functor, Setoid, Apply, Chain, Applicative, Foldable } = require('../../util/fantasyLand')
 const Z = require ('sanctuary-type-classes');
+
+const makeJust = makeLazyInstance(Just)
 
 function Nothing() {
   if (isNil(Nothing.instance)) {
@@ -55,17 +57,6 @@ function Just (value) {
       return reducer(initial, value)
     },
   )
-}
-
-function makeJust (reduce) {
-  return {
-    /** the things I do for encapsulation */
-    reduce,
-    __proto__: Just.prototype,
-    [util.inspect.custom]: function () {
-      return `Just(${inspect(reduce((_, el) => el, undefined))})`
-    }
-  }
 }
 
 implement(Applicative, Just, {

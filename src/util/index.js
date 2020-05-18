@@ -3,4 +3,5 @@ module.exports = {
   ...require('./safeNavigation'),
   ...require('./fantasyLand'),
   ...require('./compose'),
+  ...require('./makeLazyInstance'),
 }
